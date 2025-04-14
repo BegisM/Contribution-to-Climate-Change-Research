@@ -1,3 +1,10 @@
-weather/weather
 .venv
 .idea
+old_version
+.ipynb_checkpoints
+team_project
+test_data.py
+test.py
+test2.py
+synthetic_temperature_data.csv
+plotting_max_temp.py
