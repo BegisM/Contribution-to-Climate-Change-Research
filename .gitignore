@@ -8,3 +8,5 @@ test.py
 test2.py
 synthetic_temperature_data.csv
 plotting_max_temp.py
+__pycache__
+poly_regression_sklearn.ipynb
