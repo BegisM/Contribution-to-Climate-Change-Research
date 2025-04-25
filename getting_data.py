@@ -96,3 +96,37 @@ def get_training_data(daily_avg, temp):
 
 def get_month_day(daily_avg, index):
     return daily_avg.loc[index, 'MONTH'], daily_avg.loc[index, 'DAY']
+
+def get_single_season_data(start_year):
+    """
+    Get weather data for a single winter season from October of `start_year`
+    to April of `start_year + 1`, without averaging and preserving original order.
+    Resets the DataFrame index to start from 0.
+    """
+    # Read the data
+    df = pd.read_csv('Weather/Postdam.csv')
+
+    # Convert 'DATE' to datetime
+    df['DATE'] = pd.to_datetime(df['DATE'])
+
+    # Extract year and month
+    df['YEAR'] = df['DATE'].dt.year
+    df['MONTH'] = df['DATE'].dt.month
+
+    # Filter for Oct-Dec of start_year and Jan-Apr of start_year + 1
+    mask = (
+        ((df['YEAR'] == start_year) & (df['MONTH'].isin([10, 11, 12]))) |
+        ((df['YEAR'] == start_year + 1) & (df['MONTH'].isin([1, 2, 3, 4])))
+    )
+
+    df_filtered = df[mask].copy()
+
+    # Remove leap day if needed (Feb 29)
+    df_filtered['MONTH_DAY'] = df_filtered['DATE'].dt.strftime('%m-%d')
+    df_filtered = df_filtered[df_filtered['MONTH_DAY'] != '02-29']
+
+    # Reset index without changing order
+    df_filtered.reset_index(drop=True, inplace=True)
+
+    return df_filtered
+
