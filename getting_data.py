@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from normalization import z_normalization
-
+import random
+from datetime import datetime, timedelta
 
 def get_data(start, end):
     # Read the data from the CSV file
@@ -97,10 +98,81 @@ def get_training_data(daily_avg, temp):
 def get_month_day(daily_avg, index):
     return daily_avg.loc[index, 'MONTH'], daily_avg.loc[index, 'DAY']
 
+# def get_single_season_data(start_year):
+#     """
+#     Get weather data for a single winter season from October of `start_year`
+#     to April of `start_year + 1`, without averaging and preserving original order.
+#     Resets the DataFrame index to start from 0.
+#     """
+#     # Read the data
+#     df = pd.read_csv('Weather/Postdam.csv')
+#
+#     # Convert 'DATE' to datetime
+#     df['DATE'] = pd.to_datetime(df['DATE'])
+#
+#     # Extract year and month
+#     df['YEAR'] = df['DATE'].dt.year
+#     df['MONTH'] = df['DATE'].dt.month
+#
+#     # Filter for Oct-Dec of start_year and Jan-Apr of start_year + 1
+#     mask = (
+#         ((df['YEAR'] == start_year) & (df['MONTH'].isin([9, 10, 11, 12]))) |
+#         ((df['YEAR'] == start_year + 1) & (df['MONTH'].isin([1, 2, 3, 4])))
+#     )
+#
+#     df_filtered = df[mask].copy()
+#
+#     # Remove leap day if needed (Feb 29)
+#     df_filtered['MONTH_DAY'] = df_filtered['DATE'].dt.strftime('%m-%d')
+#     df_filtered = df_filtered[df_filtered['MONTH_DAY'] != '02-29']
+#
+#     # Reset index without changing order
+#     df_filtered.reset_index(drop=True, inplace=True)
+#
+#     return df_filtered
+
+# def get_single_season_data(start_year):
+#     """
+#     Get weather data for a single winter season starting from a random date
+#     between 15th September and 15th October of `start_year` to 30th April of `start_year + 1`,
+#     without averaging and preserving original order. Includes 'MONTH' and 'YEAR' columns.
+#     Resets the DataFrame index to start from 0.
+#     """
+#     # Read the data
+#     df = pd.read_csv('Weather/Postdam.csv')
+#
+#     # Convert 'DATE' to datetime
+#     df['DATE'] = pd.to_datetime(df['DATE'])
+#
+#     # Generate a random start date between 15th Sep and 15th Oct
+#     start_range = datetime(start_year, 9, 15)
+#     end_range = datetime(start_year, 10, 15)
+#     random_start_date = start_range + timedelta(days=random.randint(0, (end_range - start_range).days))
+#
+#     # Define end date as April 30 of the next year
+#     end_date = datetime(start_year + 1, 4, 30)
+#
+#     # Filter the DataFrame between random_start_date and end_date
+#     df_filtered = df[(df['DATE'] >= random_start_date) & (df['DATE'] <= end_date)].copy()
+#
+#     # Extract year and month
+#     df_filtered['YEAR'] = df_filtered['DATE'].dt.year
+#     df_filtered['MONTH'] = df_filtered['DATE'].dt.month
+#
+#     # Remove leap day if needed (Feb 29)
+#     df_filtered['MONTH_DAY'] = df_filtered['DATE'].dt.strftime('%m-%d')
+#     df_filtered = df_filtered[df_filtered['MONTH_DAY'] != '02-29']
+#
+#     # Reset index without changing order
+#     df_filtered.reset_index(drop=True, inplace=True)
+#
+#     return df_filtered
+
 def get_single_season_data(start_year):
     """
-    Get weather data for a single winter season from October of `start_year`
-    to April of `start_year + 1`, without averaging and preserving original order.
+    Get weather data for a single winter season starting from a random date
+    between 15th September and 15th October of `start_year` to 30th April of `start_year + 1`,
+    without averaging and preserving original order. Includes 'YEAR', 'MONTH', and 'DAY' columns.
     Resets the DataFrame index to start from 0.
     """
     # Read the data
@@ -109,17 +181,21 @@ def get_single_season_data(start_year):
     # Convert 'DATE' to datetime
     df['DATE'] = pd.to_datetime(df['DATE'])
 
-    # Extract year and month
-    df['YEAR'] = df['DATE'].dt.year
-    df['MONTH'] = df['DATE'].dt.month
+    # Generate a random start date between 15th Sep and 15th Oct
+    start_range = datetime(start_year, 9, 15)
+    end_range = datetime(start_year, 10, 15)
+    random_start_date = start_range + timedelta(days=random.randint(0, (end_range - start_range).days))
 
-    # Filter for Oct-Dec of start_year and Jan-Apr of start_year + 1
-    mask = (
-        ((df['YEAR'] == start_year) & (df['MONTH'].isin([10, 11, 12]))) |
-        ((df['YEAR'] == start_year + 1) & (df['MONTH'].isin([1, 2, 3, 4])))
-    )
+    # Define end date as April 30 of the next year
+    end_date = datetime(start_year + 1, 4, 30)
 
-    df_filtered = df[mask].copy()
+    # Filter the DataFrame between random_start_date and end_date
+    df_filtered = df[(df['DATE'] >= random_start_date) & (df['DATE'] <= end_date)].copy()
+
+    # Extract year, month, and day
+    df_filtered['YEAR'] = df_filtered['DATE'].dt.year
+    df_filtered['MONTH'] = df_filtered['DATE'].dt.month
+    df_filtered['DAY'] = df_filtered['DATE'].dt.day
 
     # Remove leap day if needed (Feb 29)
     df_filtered['MONTH_DAY'] = df_filtered['DATE'].dt.strftime('%m-%d')
@@ -129,4 +205,3 @@ def get_single_season_data(start_year):
     df_filtered.reset_index(drop=True, inplace=True)
 
     return df_filtered
-
