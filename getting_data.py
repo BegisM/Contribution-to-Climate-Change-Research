@@ -205,3 +205,45 @@ def get_single_season_data(start_year):
     df_filtered.reset_index(drop=True, inplace=True)
 
     return df_filtered
+
+
+def get_single_season_data_controlled_data(start_year, start_month=9, start_day=15):
+    """
+    Get weather data for a single winter season starting from a specific date
+    (default: 15th September of `start_year`) to 30th April of `start_year + 1`,
+    without averaging and preserving original order. Includes 'YEAR', 'MONTH', and 'DAY' columns.
+    Resets the DataFrame index to start from 0.
+
+    Parameters:
+    - start_year (int): The year when the season starts.
+    - start_month (int): Month for the start date (default 9 for September).
+    - start_day (int): Day for the start date (default 15).
+    """
+    # Read the data
+    df = pd.read_csv('Weather/Postdam.csv')
+
+    # Convert 'DATE' to datetime
+    df['DATE'] = pd.to_datetime(df['DATE'])
+
+    # Construct controlled start date
+    start_date = datetime(start_year, start_month, start_day)
+
+    # Define end date as April 30 of the next year
+    end_date = datetime(start_year + 1, 4, 30)
+
+    # Filter the DataFrame between start_date and end_date
+    df_filtered = df[(df['DATE'] >= start_date) & (df['DATE'] <= end_date)].copy()
+
+    # Extract year, month, and day
+    df_filtered['YEAR'] = df_filtered['DATE'].dt.year
+    df_filtered['MONTH'] = df_filtered['DATE'].dt.month
+    df_filtered['DAY'] = df_filtered['DATE'].dt.day
+
+    # Remove leap day (Feb 29) if present
+    df_filtered['MONTH_DAY'] = df_filtered['DATE'].dt.strftime('%m-%d')
+    df_filtered = df_filtered[df_filtered['MONTH_DAY'] != '02-29']
+
+    # Reset index
+    df_filtered.reset_index(drop=True, inplace=True)
+
+    return df_filtered

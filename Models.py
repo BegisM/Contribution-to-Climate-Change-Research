@@ -1,8 +1,9 @@
-from getting_data import get_training_data, get_data, get_month_of_year, get_all_data, get_month_day, get_single_season_data
+from getting_data import get_training_data, get_data, get_month_of_year, get_all_data, get_month_day, get_single_season_data, get_single_season_data_controlled_data
 import numpy as np
 from gradient_descent import gradient_descent
 from normalization import normalize_back
 import matplotlib.pyplot as plt
+import pandas as pd
 import dill
 
 class PredictionModel:
@@ -14,7 +15,7 @@ class PredictionModel:
         self.W, self.B = None, None
         self.J_h, self.p_h = None, None
         self.temp_pred, self.temp_pred_normalized = None, None
-        self.first_april_temp_normalized, self.first_april_temp = None, None
+        self.first_april_temp_normalized, self.first_april_temp, self.first_april_reached_index = None, None, None
 
     def get_training_data(self, temp_type='TMAX'):
         (self.X_normalized, self.X_mu, self.X_sigma), (self.Y_normalized, self.Y_mu, self.Y_sigma) = get_training_data(self.raw_data, temp_type)
@@ -31,9 +32,16 @@ class PredictionModel:
 
         self.compute_temperature()
 
-        if not old_model and self.X[-1, 0] == 212:
-            self.first_april_temp_normalized = self.temp_pred_normalized[182]
-            self.first_april_temp = self.temp_pred[182]
+        if self.X[-1, 0] >= 166:
+            try:
+                april_first_index = self.raw_data[self.raw_data["MONTH_DAY"] == "04-01"].index[0]
+                self.first_april_temp_normalized = self.temp_pred_normalized[april_first_index]
+                self.first_april_temp = self.temp_pred[april_first_index]
+                self.first_april_reached_index = april_first_index
+            except IndexError:
+                self.first_april_temp_normalized = None
+                self.first_april_temp = None
+                self.first_april_reached_index = None
 
         return self.W, self.B
 
@@ -44,8 +52,11 @@ class PredictionModel:
 
 
 class PredictionMiniModels:
-    def __init__(self, main_model=None, year=1990):
-        self.raw_all_data = get_single_season_data(year)
+    def __init__(self, main_model=None, year=1990, start_day=None, start_month=None):
+        if start_day and start_month:
+            self.raw_all_data = get_single_season_data_controlled_data(year, start_month, start_day)
+        else:
+            self.raw_all_data = get_single_season_data(year)
         self.main_Model = main_model
         self.models = []
         self.starting_difference = self.raw_all_data.index.stop - self.main_Model.raw_data.index.stop if self.main_Model else None
@@ -74,7 +85,7 @@ class PredictionMiniModels:
                     'difference': 182 - (i + 105)
                 })
                 self.models[-1].first_april_reached_index = self.starting_difference + i + 105
-                self.models[-1].x_plot_end_reached = self.models[-1].first_april_reached_index - self.starting_difference if self.starting_difference < 0 else self.models[-1].first_april_reached_index
+                self.models[-1].x_plot_end_reached = self.models[-1].first_april_reached_index if self.starting_difference > 0 else self.models[-1].first_april_reached_index - self.starting_difference
                 return
 
 
@@ -236,7 +247,7 @@ class MiniModelsDifferenceCheck:
         self.models = models
         self.models_differences = list()
 
-        self.models_computation(first_reached=False)
+        self.models_computation()
 
         self.models_differences = np.array(self.models_differences).reshape(-1, 1)
         self.linear_regression_model = None
